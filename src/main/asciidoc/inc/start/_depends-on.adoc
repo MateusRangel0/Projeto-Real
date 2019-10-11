@@ -1,0 +1,21 @@
+Custom networks do not provide a mechanism like `<links>` to express strong links between containers. They are normally not required because docker ensures that all containers within the same custom network can eventually resolve each other via DNS.
+
+Your containers should preferably be able to deal with temporarily unresolvable dependencies but in some cases it is helpful to be able to rely the availability of other infrastructure containers.
+
+The `<dependsOn>` configuration can be used to expresses custom network dependencies between your containers. `docker:start` will ensure that all dependencies a container depends on are completely started (fulfilling all `<wait>` conditions) before the depending container is started.
+
+Additionally, each `<container>` element can specify a comma separated set of containers.  Comma (and whitespace) can be used to separate containers since valid docker container names contain only characters, digits, underscores, periods and dashes.
+
+.Example
+[source,xml]
+----
+<configuration>
+  <!-- .... -->
+  <run>
+    <dependsOn>
+      <container>postgres</container>
+      <container>logstash</container>
+    </dependsOn>
+  </run>
+</configuration>
+----

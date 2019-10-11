@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: io.fabric8.maven.docker.util.VolumeBindingUtilTest
+-------------------------------------------------------------------------------
+Tests run: 16, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 0.047 s - in io.fabric8.maven.docker.util.VolumeBindingUtilTest

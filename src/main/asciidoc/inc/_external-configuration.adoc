@@ -1,0 +1,30 @@
+
+[[external-configuration]]
+= External Configuration
+
+For special configuration needs, there is the possibility to get the
+runtime and build configuration from places outside the plugin's
+configuration. This is done with the help of `<external>`
+configuration sections which at least has a `<type>` subelement. This
+`<type>` element selects a specific so called "handler" which is
+responsible for creating the full image configuration. A handler can
+decide to use the `<run>` and `<build>` configuration which could
+be provided in addition to this `<external>` section or it can decide
+to completely ignore any extra configuration option.
+
+A handler can also decide to expand this single image configuration to
+a list of image configurations. The image configurations resulting
+from such a external configuration are added to the _regular_
+`<image>` configurations without an `<external>` section.
+
+The available handlers are described in the following.
+
+[[property-configuration]]
+== Properties
+
+include::external/_property_configuration.adoc[]
+
+[[docker-compose]]
+== Docker Compose
+
+include::external/_docker_compose.adoc[]

@@ -1,0 +1,14 @@
+io/fabric8/maven/docker/config/HealthCheckConfiguration$1.class
+io/fabric8/maven/docker/StartMojo$1.class
+io/fabric8/maven/docker/util/StartOrderResolver$1.class
+io/fabric8/maven/docker/HelpMojo.class
+io/fabric8/maven/docker/access/DockerMachine$1.class
+io/fabric8/maven/docker/assembly/AssemblyFiles$1.class
+io/fabric8/maven/docker/assembly/DockerFileBuilder$1.class
+io/fabric8/maven/docker/service/ImagePullManager$1.class
+io/fabric8/maven/docker/util/ImageNameFormatter$1.class
+io/fabric8/maven/docker/log/LogOutputSpec$1.class
+io/fabric8/maven/docker/config/handler/property/ValueProvider$2.class
+io/fabric8/maven/docker/config/WaitConfiguration$1.class
+io/fabric8/maven/docker/config/LogConfiguration$1.class
+io/fabric8/maven/docker/service/helper/StartContainerExecutor$1.class
