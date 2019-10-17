@@ -315,7 +315,13 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
         WaitConfiguration.TcpConfiguration tcp = config == null ? null : config.getTcp();
         WaitConfiguration.HttpConfiguration http = config == null ? null : config.getHttp();
 
-        return new WaitConfiguration.Builder()
+        return buildCustomWaitConfiguration(config, valueProvider, url, exec, tcp, http);
+    }
+
+	private WaitConfiguration buildCustomWaitConfiguration(WaitConfiguration config, ValueProvider valueProvider,
+			String url, WaitConfiguration.ExecConfiguration exec, WaitConfiguration.TcpConfiguration tcp,
+			WaitConfiguration.HttpConfiguration http) {
+		return new WaitConfiguration.Builder()
                 .time(valueProvider.getInt(WAIT_TIME, config == null ? null : config.getTime()))
                 .healthy(valueProvider.getBoolean(WAIT_HEALTHY, config == null ? null : config.getHealthy()))
                 .url(url)
@@ -332,7 +338,7 @@ public class PropertyConfigHandler implements ExternalConfigHandler {
                 .tcpPorts(valueProvider.getIntList(WAIT_TCP_PORT, tcp == null ? null : tcp.getPorts()))
                 .tcpMode(valueProvider.getString(WAIT_TCP_MODE, tcp == null || tcp.getMode() == null ? null : tcp.getMode().name()))
                 .build();
-    }
+	}
 
     private WatchImageConfiguration extractWatchConfig(ImageConfiguration fromConfig, ValueProvider valueProvider) {
         WatchImageConfiguration config = fromConfig.getWatchConfiguration();

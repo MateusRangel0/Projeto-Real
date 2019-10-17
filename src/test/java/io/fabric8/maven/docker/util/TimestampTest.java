@@ -106,6 +106,6 @@ public class TimestampTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testInvalidNanos() throws Exception {
-        Timestamp ts = new Timestamp("2014-11-24T12:00:00.abzeZ");
+        new Timestamp("2014-11-24T12:00:00.abzeZ");
     }
 }

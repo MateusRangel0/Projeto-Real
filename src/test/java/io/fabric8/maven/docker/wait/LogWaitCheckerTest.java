@@ -44,8 +44,7 @@ public class LogWaitCheckerTest {
             times = 1;
         }};
 
-        final LogWaitChecker logWaitChecker =
-                new LogWaitChecker("Hello, world!", access, "1", logger);
+        new LogWaitChecker("Hello, world!", access, "1", logger);
     }
 
     @Test

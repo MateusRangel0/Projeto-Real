@@ -17,15 +17,20 @@
 
 
 package io.fabric8.maven.docker.util;
+
+import java.io.Serializable;
+
 /**
  * Label used to mark a container belonging to a certain build.
  *
  * @author roland
  * @since 31/03/15
  */
-public class GavLabel {
+public class GavLabel implements Serializable {
 
-    private String mavenCoordinates;
+	private static final long serialVersionUID = 1L;
+
+	private String mavenCoordinates;
 
     /**
      * Construct from a given label

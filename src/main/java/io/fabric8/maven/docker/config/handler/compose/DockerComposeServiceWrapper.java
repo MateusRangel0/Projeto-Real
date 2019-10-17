@@ -154,7 +154,7 @@ class DockerComposeServiceWrapper {
         return ret;
     }
 
-    LogConfiguration getLogConfiguration() {
+    public LogConfiguration getLogConfiguration() {
         Object logConfig = asObject("logging");
         if (logConfig == null) {
             return null;
@@ -169,54 +169,76 @@ class DockerComposeServiceWrapper {
             .build();
     }
 
-    NetworkConfig getNetworkConfig() {
+    public NetworkConfig getNetworkConfig() {
+    	
+    	NetworkConfig returnNetworkConfig = null;
+    	
         String net = asString("network_mode");
         if (net != null) {
-            return new NetworkConfig(net);
-        }
-        Object networks = asObject("networks");
-        if (networks == null) {
-            return null;
-        }
-        if (networks instanceof List) {
-            List<String> toJoin = (List<String>) networks;
-            if (toJoin.size() > 1) {
-                throwIllegalArgumentException("'networks:' Only one custom network to join is supported currently");
-            }
-            return new NetworkConfig(NetworkConfig.Mode.custom, toJoin.get(0));
-        } else if (networks instanceof Map) {
-            Map<String,Object> toJoin = (Map<String, Object>) networks;
-            if (toJoin.size() > 1) {
-                throwIllegalArgumentException("'networks:' Only one custom network to join is supported currently");
-            }
-            String custom = toJoin.keySet().iterator().next();
-            NetworkConfig ret = new NetworkConfig(NetworkConfig.Mode.custom, custom);
-            Object aliases = toJoin.get(custom);
-            if (aliases != null) {
-                if (aliases instanceof List) {
-                    for (String alias : (List<String>) aliases) {
-                        ret.addAlias(alias);
-                    }
-                } else if (aliases instanceof Map) {
-                	Map<String, List<String>> map = (Map<String, List<String>>) aliases;
-                    if (map.containsKey("aliases")) {
-                        for (String alias : map.get("aliases")) {
-                            ret.addAlias(alias);
-                        }
-                    } else {
-                        throwIllegalArgumentException(
-                                "'networks:' Aliases must be given as a map of strings. 'aliases' key not founded");
-                    }
-                } else {
-                    throwIllegalArgumentException("'networks:' No aliases entry found in network config map");
-                }
-            }
-            return ret;
+        	returnNetworkConfig = new NetworkConfig(net);
         } else {
-            throwIllegalArgumentException("'networks:' must beu either a list or a map");
-            return null;
+        	Object networks = asObject("networks");
+        	if (networks == null) {
+        		returnNetworkConfig = null;
+        	} else {
+        		if (networks instanceof List) {
+        			returnNetworkConfig = configAsList(networks);
+        		} else if (networks instanceof Map) {
+        			Map<String,Object> toJoin = (Map<String, Object>) networks;
+        			if (toJoin.size() > 1) {
+        				throwIllegalArgumentException("'networks:' Only one custom network to join is supported currently");
+        			}
+        			String custom = toJoin.keySet().iterator().next();
+        			NetworkConfig ret = new NetworkConfig(NetworkConfig.Mode.custom, custom);
+        			Object aliases = toJoin.get(custom);
+        			if (aliases != null) {
+        				if (aliases instanceof List) {
+        					List<String> listAliases = (List<String>) aliases;
+        					setUpNetworkAliases(ret, listAliases);
+        				} else if (aliases instanceof Map) {
+        					Map<String, List<String>> map = (Map<String, List<String>>) aliases;
+        					setUpNetworkAliases(ret, map);
+        				} else {
+        					throwIllegalArgumentException("'networks:' No aliases entry found in network config map");
+        				}
+        			}
+        			returnNetworkConfig = ret;
+        		} else {
+        			throwIllegalArgumentException("'networks:' must beu either a list or a map");
+        			returnNetworkConfig = null;
+        		}
+        	}
         }
+        
+        return returnNetworkConfig;
     }
+
+	private void setUpNetworkAliases(NetworkConfig ret, Map<String, List<String>> map) {
+		if (map.containsKey("aliases")) {
+			for (String alias : map.get("aliases")) {
+				ret.addAlias(alias);
+			}
+		} else {
+			throwIllegalArgumentException(
+					"'networks:' Aliases must be given as a map of strings. 'aliases' key not founded");
+		}
+	}
+
+	private void setUpNetworkAliases(NetworkConfig ret, List<String> listAliases) {
+		for (String alias : listAliases) {
+			ret.addAlias(alias);
+		}
+	}
+
+	private NetworkConfig configAsList(Object networks) {
+		NetworkConfig returnNetworkConfig;
+		List<String> toJoin = (List<String>) networks;
+		if (toJoin.size() > 1) {
+			throwIllegalArgumentException("'networks:' Only one custom network to join is supported currently");
+		}
+		returnNetworkConfig = new NetworkConfig(NetworkConfig.Mode.custom, toJoin.get(0));
+		return returnNetworkConfig;
+	}
 
     List<String> getPortMapping() {
         List<String> fromYml = asList("ports");

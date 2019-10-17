@@ -123,44 +123,11 @@ public class DockerAssemblyManager {
                                                      buildConfig.getDockerFile() + "\" (resolved to \"" + dockerFile + "\") doesn't exist");
                 }
 
-                FixedStringSearchInterpolator interpolator = DockerFileUtil.createInterpolator(params, buildConfig.getFilter());
-                verifyGivenDockerfile(dockerFile, buildConfig, interpolator, log);
-                interpolateDockerfile(dockerFile, buildDirs, interpolator);
-                // User dedicated Dockerfile from extra directory
-                archiveCustomizers.add(new ArchiverCustomizer() {
-                    @Override
-                    public TarArchiver customize(TarArchiver archiver) throws IOException {
-                        DefaultFileSet fileSet = DefaultFileSet.fileSet(buildConfig.getAbsoluteContextDirPath(params));
-                        addDockerIncludesExcludesIfPresent(fileSet, params);
-                        // Exclude non-interpolated dockerfile from source tree
-                        // Interpolated Dockerfile is already added as it was created into the output directory when
-                        // using dir dir mode
-                        excludeDockerfile(fileSet, dockerFile);
-
-                        // If the content is added as archive, then we need to add the Dockerfile from the builddir
-                        // directly to docker.tar (as the output builddir is not picked up in archive mode)
-                        if (isArchive(assemblyConfig)) {
-                            String name = dockerFile.getName();
-                            archiver.addFile(new File(buildDirs.getOutputDirectory(), name), name);
-                        }
-
-                        archiver.addFileSet(fileSet);
-                        return archiver;
-                    }
-                });
+                configInDockerFileMode(params, buildConfig, log, buildDirs, assemblyConfig, archiveCustomizers,
+						dockerFile);
             } else {
                 // Create custom docker file in output dir
-                DockerFileBuilder builder = createDockerFileBuilder(buildConfig, assemblyConfig);
-                builder.write(buildDirs.getOutputDirectory());
-                // Add own Dockerfile
-                final File dockerFile = new File(buildDirs.getOutputDirectory(), DOCKERFILE_NAME);
-                archiveCustomizers.add(new ArchiverCustomizer() {
-                    @Override
-                    public TarArchiver customize(TarArchiver archiver) throws IOException {
-                        archiver.addFile(dockerFile, DOCKERFILE_NAME);
-                        return archiver;
-                    }
-                });
+                configOutOfDockerFileMode(buildConfig, buildDirs, assemblyConfig, archiveCustomizers);
             }
 
             // If required make all files in the assembly executable
@@ -183,12 +150,60 @@ public class DockerAssemblyManager {
         }
     }
 
+	private void configOutOfDockerFileMode(final BuildImageConfiguration buildConfig, final BuildDirs buildDirs,
+			final AssemblyConfiguration assemblyConfig, final List<ArchiverCustomizer> archiveCustomizers)
+			throws IOException {
+		DockerFileBuilder builder = createDockerFileBuilder(buildConfig, assemblyConfig);
+		builder.write(buildDirs.getOutputDirectory());
+		// Add own Dockerfile
+		final File dockerFile = new File(buildDirs.getOutputDirectory(), DOCKERFILE_NAME);
+		archiveCustomizers.add(new ArchiverCustomizer() {
+		    @Override
+		    public TarArchiver customize(TarArchiver archiver) throws IOException {
+		        archiver.addFile(dockerFile, DOCKERFILE_NAME);
+		        return archiver;
+		    }
+		});
+	}
+
+	private void configInDockerFileMode(final MojoParameters params, final BuildImageConfiguration buildConfig,
+			Logger log, final BuildDirs buildDirs, final AssemblyConfiguration assemblyConfig,
+			final List<ArchiverCustomizer> archiveCustomizers, final File dockerFile) throws IOException {
+		FixedStringSearchInterpolator interpolator = DockerFileUtil.createInterpolator(params, buildConfig.getFilter());
+		verifyGivenDockerfile(dockerFile, buildConfig, interpolator, log);
+		interpolateDockerfile(dockerFile, buildDirs, interpolator);
+		// User dedicated Dockerfile from extra directory
+		archiveCustomizers.add(new ArchiverCustomizer() {
+		    @Override
+		    public TarArchiver customize(TarArchiver archiver) throws IOException {
+		        DefaultFileSet fileSet = DefaultFileSet.fileSet(buildConfig.getAbsoluteContextDirPath(params));
+		        addDockerIncludesExcludesIfPresent(fileSet, params);
+		        // Exclude non-interpolated dockerfile from source tree
+		        // Interpolated Dockerfile is already added as it was created into the output directory when
+		        // using dir dir mode
+		        excludeDockerfile(fileSet, dockerFile);
+
+		        // If the content is added as archive, then we need to add the Dockerfile from the builddir
+		        // directly to docker.tar (as the output builddir is not picked up in archive mode)
+		        if (isArchive(assemblyConfig)) {
+		            String name = dockerFile.getName();
+		            archiver.addFile(new File(buildDirs.getOutputDirectory(), name), name);
+		        }
+
+		        archiver.addFileSet(fileSet);
+		        return archiver;
+		    }
+		});
+	}
+
 
     private void excludeDockerfile(DefaultFileSet fileSet, File dockerFile) {
-        ArrayList<String> excludes =
-            fileSet.getExcludes() != null ?
-                new ArrayList<>(Arrays.asList(fileSet.getExcludes())) :
-                new ArrayList<String>();
+    	ArrayList<String> excludes = null;
+    	if (fileSet.getExcludes() != null) {
+    		excludes = new ArrayList<>(Arrays.asList(fileSet.getExcludes()));
+    	} else {
+    		excludes = new ArrayList<String>();
+    	}
         excludes.add(dockerFile.getName());
         fileSet.setExcludes(excludes.toArray(new String[0]));
     }

@@ -1,5 +1,6 @@
 package io.fabric8.maven.docker.util;
 
+import java.io.Serializable;
 import java.util.List;
 
 import org.apache.maven.archiver.MavenArchiveConfiguration;
@@ -15,8 +16,10 @@ import org.apache.maven.shared.filtering.MavenReaderFilter;
  * @author roland
  * @since 09.05.14
  */
-public class MojoParameters {
-    private final MavenArchiveConfiguration archive;
+public class MojoParameters implements Serializable {
+	private static final long serialVersionUID = 1L;
+	
+	private final MavenArchiveConfiguration archive;
     private final MavenSession session;
     private final MavenFileFilter mavenFileFilter;
     private final MavenReaderFilter mavenFilterReader;

@@ -639,55 +639,70 @@ public class BuildImageConfiguration implements Serializable {
     }
 
     private File findDockerFileFile(Logger log) {
+    	File fileFound = null;
+    	
         if(dockerFileDir != null && contextDir != null) {
             log.warn("Both contextDir (%s) and deprecated dockerFileDir (%s) are configured. Using contextDir.", contextDir, dockerFileDir);
         }
 
         if (dockerFile != null) {
-            File dFile = new File(dockerFile);
-            if (dockerFileDir == null && contextDir == null) {
-                return dFile;
-            } else {
-                if(contextDir != null) {
-                    if (dFile.isAbsolute()) {
-                        return dFile;
-                    }
-                    return new File(contextDir, dockerFile);
-                }
-
-                if (dockerFileDir != null) {
-                    if (dFile.isAbsolute()) {
-                        throw new IllegalArgumentException("<dockerFile> can not be absolute path if <dockerFileDir> also set.");
-                    }
-                    log.warn("dockerFileDir parameter is deprecated, please migrate to contextDir");
-                    return new File(dockerFileDir, dockerFile);
-                }
-            }
+            fileFound = getExistingDockerFile(log);
+        } else {
+        	fileFound = createNewDockerFile(log);        	
         }
 
-
-        if (contextDir != null) {
-            return new File(contextDir, "Dockerfile");
-        }
-
-        if (dockerFileDir != null) {
-            return new File(dockerFileDir, "Dockerfile");
-        }
-
-        // TODO: Remove the following deprecated handling section
-        if (dockerArchive == null) {
-            String deprecatedDockerFileDir =
-                getAssemblyConfiguration() != null ?
-                    getAssemblyConfiguration().getDockerFileDir() :
-                    null;
-            if (deprecatedDockerFileDir != null) {
-                log.warn("<dockerFileDir> in the <assembly> section of a <build> configuration is deprecated");
-                log.warn("Please use <dockerFileDir> or <dockerFile> directly within the <build> configuration instead");
-                return new File(deprecatedDockerFileDir,"Dockerfile");
-            }
-        }
-
-        // No dockerfile mode
-        return null;
+        // No dockerfile mode if fileFound == null
+        return fileFound;
     }
+
+	private File createNewDockerFile(Logger log) {
+		File fileFound = null;
+		
+		if (contextDir != null) {
+			fileFound = new File(contextDir, "Dockerfile");
+		} else if (dockerFileDir != null) {
+			fileFound = new File(dockerFileDir, "Dockerfile");
+		} else if (dockerArchive == null) {
+			
+			// TODO: Remove the following deprecated handling section
+			String deprecatedDockerFileDir = null;
+			if (getAssemblyConfiguration() != null) {
+				deprecatedDockerFileDir = getAssemblyConfiguration().getDockerFileDir();
+			}
+			
+			if (deprecatedDockerFileDir != null) {
+				log.warn("<dockerFileDir> in the <assembly> section of a <build> configuration is deprecated");
+				log.warn("Please use <dockerFileDir> or <dockerFile> directly within the <build> configuration instead");
+				fileFound = new File(deprecatedDockerFileDir,"Dockerfile");
+			}
+		}
+		return fileFound;
+	}
+
+	private File getExistingDockerFile(Logger log) {
+		File fileFound = null;
+		
+		File dFile = new File(dockerFile);
+		if (dockerFileDir == null && contextDir == null) {
+		    fileFound = dFile;
+		} else {
+		    if(contextDir != null) {
+		        if (dFile.isAbsolute()) {
+		            fileFound = dFile;
+		        } else {
+		        	fileFound = new File(contextDir, dockerFile);                    	
+		        }
+		    } else {
+		    	if (dockerFileDir != null) {
+		    		if (!dFile.isAbsolute()) {
+		    			log.warn("dockerFileDir parameter is deprecated, please migrate to contextDir");
+		    			fileFound = new File(dockerFileDir, dockerFile);
+		    		} else {
+		    			throw new IllegalArgumentException("<dockerFile> can not be absolute path if <dockerFileDir> also set.");
+		    		}
+		    	}                	
+		    }
+		}
+		return fileFound;
+	}
 }

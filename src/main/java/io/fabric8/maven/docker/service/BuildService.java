@@ -393,7 +393,9 @@ public class BuildService {
 
     public static class BuildContext implements Serializable {
 
-        private MojoParameters mojoParameters;
+		private static final long serialVersionUID = 1L;
+
+		private MojoParameters mojoParameters;
 
         private Map<String, String> buildArgs;
 
