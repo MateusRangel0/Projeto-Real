@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: io.fabric8.maven.docker.util.DockerPathUtilTest
 -------------------------------------------------------------------------------
-Tests run: 9, Failures: 0, Errors: 0, Skipped: 2, Time elapsed: 0.033 s - in io.fabric8.maven.docker.util.DockerPathUtilTest
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 2, Time elapsed: 0.039 s - in io.fabric8.maven.docker.util.DockerPathUtilTest

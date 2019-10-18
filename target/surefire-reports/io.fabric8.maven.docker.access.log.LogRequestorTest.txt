@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: io.fabric8.maven.docker.access.log.LogRequestorTest
 -------------------------------------------------------------------------------
-Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.122 s - in io.fabric8.maven.docker.access.log.LogRequestorTest
+Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.093 s - in io.fabric8.maven.docker.access.log.LogRequestorTest

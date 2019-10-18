@@ -53,15 +53,14 @@ public class AnsiLogger implements Logger {
     // Whether to use ANSI codes
     private boolean useAnsi;
 
-
-    public AnsiLogger(Log log, boolean useColor, String verbose) {
+    public AnsiLogger(Log log, boolean useColor, String  verbose) {
         this(log, useColor, verbose, false);
     }
 
     public AnsiLogger(Log log, boolean useColor, String verbose, boolean batchMode) {
         this(log, useColor, verbose, batchMode, DEFAULT_LOG_PREFIX);
     }
-
+    
     public AnsiLogger(Log log, boolean useColor, String verbose, boolean batchMode, String prefix) {
         this.log = log;
         this.prefix = prefix;
@@ -110,7 +109,10 @@ public class AnsiLogger implements Logger {
     public boolean isDebugEnabled() {
         return log.isDebugEnabled();
     }
-
+    
+    /**
+     * Whether verbose is enabled.
+     */
     public boolean isVerboseEnabled() {
         return isVerbose;
     }
@@ -223,8 +225,8 @@ public class AnsiLogger implements Logger {
     }
 
     private String colored(String message, Ansi.Color color, boolean addPrefix, Object ... params) {
-        Ansi ansi = ansi().fg(color);
-        String msgToPrint = addPrefix ? prefix + message : message;
+        final Ansi ansi = ansi().fg(color);
+        final String msgToPrint = addPrefix ? prefix + message : message;
         return ansi.a(format(evaluateEmphasis(msgToPrint, color), params)).reset().toString();
     }
 
@@ -254,12 +256,12 @@ public class AnsiLogger implements Logger {
         // by groups of colorization that are <SET> color-part <RESET> plain-part.
         // To avoid emitting needless color changes, we skip the set or reset
         // if the subsequent part is empty.
-        String msgColorS = ansi().fg(msgColor).toString();
-        StringBuilder ret = new StringBuilder(parts[0]);
+        final String msgColorS = ansi().fg(msgColor).toString();
+        final StringBuilder ret = new StringBuilder(parts[0]);
 
         for (int i = 1; i < parts.length; i += 4) {
-            boolean colorPart = i + 1 < parts.length && parts[i + 1].length() > 0;
-            boolean plainPart = i + 3 < parts.length && parts[i + 3].length() > 0;
+            final boolean colorPart = i + 1 < parts.length && parts[i + 1].length() > 0;
+            final boolean plainPart = i + 3 < parts.length && parts[i + 3].length() > 0;
 
             if (colorPart) {
                 ret.append(getEmphasisColor(parts[i]));
@@ -291,7 +293,7 @@ public class AnsiLogger implements Logger {
     }
 
     private String getEmphasisColor(String id) {
-        Ansi.Color color = COLOR_MAP.get(id.toUpperCase());
+        final Ansi.Color color = COLOR_MAP.get(id.toUpperCase());
         if (color != null) {
             return id.toLowerCase().equals(id) ?
                 // lower case letter means bright color ...
@@ -323,13 +325,15 @@ public class AnsiLogger implements Logger {
     }
 
     private Boolean checkBackwardVersionValues(String verbose) {
-        if (verbose.isEmpty()) {
-            return Boolean.TRUE;
-        }
-        if (verbose.equalsIgnoreCase("true") || verbose.equalsIgnoreCase("false")) {
-            return Boolean.parseBoolean(verbose.toLowerCase());
-        }
-        return null;
+    	Boolean ret = null;
+    	if (!verbose.isEmpty()) {
+    		if (verbose.equalsIgnoreCase("true") || verbose.equalsIgnoreCase("false")) {
+    			ret = Boolean.parseBoolean(verbose.toLowerCase());
+    		}
+    	} else {
+    		ret = Boolean.TRUE;
+    	}
+    	return ret;
     }
 
     private List<LogVerboseCategory> getVerboseModesFromString(String groups) {

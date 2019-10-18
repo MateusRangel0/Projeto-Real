@@ -18,7 +18,7 @@ public class ExitCodeChecker implements WaitChecker {
     @Override
     public boolean check() {
         try {
-            Integer exitCodeActual = queryService.getMandatoryContainer(containerId).getExitCode();
+            final Integer exitCodeActual = queryService.getMandatoryContainer(containerId).getExitCode();
             // container still running
             return exitCodeActual != null && exitCodeActual == exitCodeExpected;
         } catch (DockerAccessException e) {

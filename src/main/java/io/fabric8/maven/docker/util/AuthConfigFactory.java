@@ -51,8 +51,8 @@ import io.fabric8.maven.docker.access.ecr.EcrExtendedAuth;
  */
 public class AuthConfigFactory {
 
-    // Properties for specifying username, password (can be encrypted), email and authtoken (not used yet)
-    // + whether to check for OpenShift authentication
+    // Properties for specifying username, password (can be encrypted), email and
+	// authtoken (not used yet) + whether to check for OpenShift authentication
     public static final String AUTH_USERNAME = "username";
     public static final String AUTH_PASSWORD = "password";
     public static final String AUTH_EMAIL = "email";
@@ -108,8 +108,8 @@ public class AuthConfigFactory {
      *
      * @param isPush if true this AuthConfig is created for a push, if false it's for a pull
      * @param skipExtendedAuth if true, do not execute extended authentication methods
-     * @param authConfig String-String Map holding configuration info from the plugin's configuration. Can be <code>null</code> in
-     *                   which case the settings are consulted.
+     * @param authConfig String-String Map holding configuration info from the plugin's
+     * 		  configuration. Can be <code>null</code> in which case the settings are consulted.
      * @param settings the global Maven settings object
      * @param user user to check for
      * @param registry registry to use, might be null in which case a default registry is checked,
@@ -155,11 +155,12 @@ public class AuthConfigFactory {
      * @throws MojoExecutionException
      */
     private AuthConfig extendedAuthentication(AuthConfig standardAuthConfig, String registry) throws IOException, MojoExecutionException {
-        EcrExtendedAuth ecr = new EcrExtendedAuth(log, registry);
+        AuthConfig ret = standardAuthConfig;
+    	EcrExtendedAuth ecr = new EcrExtendedAuth(log, registry);
         if (ecr.isAwsRegistry()) {
-            return ecr.extendedAuth(standardAuthConfig);
+            ret = ecr.extendedAuth(standardAuthConfig);
         }
-        return standardAuthConfig;
+        return ret;
     }
 
     /**
@@ -184,8 +185,8 @@ public class AuthConfigFactory {
      *
      *
      * @param isPush if true this AuthConfig is created for a push, if false it's for a pull
-     * @param authConfigMap String-String Map holding configuration info from the plugin's configuration. Can be <code>null</code> in
-     *                   which case the settings are consulted.
+     * @param authConfigMap String-String Map holding configuration info from the plugin's 
+     * 		  configuration. Can be <code>null</code> in which case the settings are consulted.
      * @param settings the global Maven settings object
      * @param user user to check for
      * @param registry registry to use, might be null in which case a default registry is checked,
@@ -197,16 +198,19 @@ public class AuthConfigFactory {
             throws MojoExecutionException {
         AuthConfig ret;
 
-        // Check first for specific configuration based on direction (pull or push), then for a default value
+        // Check first for specific configuration based on direction (pull or push),
+        // then for a default value
         for (LookupMode lookupMode : new LookupMode[] { getLookupMode(isPush), LookupMode.DEFAULT, LookupMode.REGISTRY}) {
-            // System properties docker.username and docker.password always take precedence
+            // System properties docker.username and docker.password always take
+        	// precedence
             ret = getAuthConfigFromSystemProperties(lookupMode);
             if (ret != null) {
                 log.debug("AuthConfig: credentials from system properties");
                 return ret;
             }
 
-            // Check for openshift authentication either from the plugin config or from system props
+            // Check for openshift authentication either from the plugin config or
+            // from system props
             if (lookupMode != LookupMode.REGISTRY) {
                 ret = getAuthConfigFromOpenShiftConfig(lookupMode, authConfigMap);
                 if (ret != null) {
@@ -315,9 +319,9 @@ public class AuthConfigFactory {
                 try (Reader r = new InputStreamReader(response.getEntity().getContent(), StandardCharsets.UTF_8)) {
                     JsonObject securityCredentials = new Gson().fromJson(r, JsonObject.class);
 
-                    String user = securityCredentials.getAsJsonPrimitive("AccessKeyId").getAsString();
-                    String password = securityCredentials.getAsJsonPrimitive("SecretAccessKey").getAsString();
-                    String token = securityCredentials.getAsJsonPrimitive("Token").getAsString();
+                    final String user = securityCredentials.getAsJsonPrimitive("AccessKeyId").getAsString();
+                    final String password = securityCredentials.getAsJsonPrimitive("SecretAccessKey").getAsString();
+                    final String token = securityCredentials.getAsJsonPrimitive("Token").getAsString();
 
                     log.debug("Received temporary access key %s...", user.substring(0, 8));
                     return new AuthConfig(user, password, "none", token);
@@ -326,8 +330,8 @@ public class AuthConfigFactory {
         }
     }
 
-    // if the local credentials don't contain user and password & is not a EC2 instance, use ECS Task instance
-    // role credentials
+    // if the local credentials don't contain user and password & is not a EC2 instance,
+    // use ECS Task instance role credentials
     private AuthConfig getAuthConfigFromECSTaskRole() throws IOException {
         log.debug("No user and password set for ECR, checking ECS Task role");
         try (CloseableHttpClient client = HttpClients.custom().useSystemProperties().build()) {
@@ -344,7 +348,7 @@ public class AuthConfigFactory {
             log.debug("Getting temporary security credentials from: %s", awsContainerCredentialsUri);
 
             // get temporary credentials
-            HttpGet request = new HttpGet("http://169.254.170.2/" + UrlEscapers.urlPathSegmentEscaper().escape(awsContainerCredentialsUri));
+            final HttpGet request = new HttpGet("http://169.254.170.2/" + UrlEscapers.urlPathSegmentEscaper().escape(awsContainerCredentialsUri));
             request.setConfig(conf);
             try (CloseableHttpResponse response = client.execute(request)) {
                 if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
@@ -356,11 +360,11 @@ public class AuthConfigFactory {
 
                 // read task role
                 try (Reader r = new InputStreamReader(response.getEntity().getContent(), StandardCharsets.UTF_8)) {
-                    JsonObject securityCredentials = new Gson().fromJson(r, JsonObject.class);
+                    final JsonObject securityCredentials = new Gson().fromJson(r, JsonObject.class);
 
-                    String user = securityCredentials.getAsJsonPrimitive("AccessKeyId").getAsString();
-                    String password = securityCredentials.getAsJsonPrimitive("SecretAccessKey").getAsString();
-                    String token = securityCredentials.getAsJsonPrimitive("Token").getAsString();
+                    final String user = securityCredentials.getAsJsonPrimitive("AccessKeyId").getAsString();
+                    final String password = securityCredentials.getAsJsonPrimitive("SecretAccessKey").getAsString();
+                    final String token = securityCredentials.getAsJsonPrimitive("Token").getAsString();
 
                     log.debug("Received temporary access key %s...", user.substring(0, 8));
                     return new AuthConfig(user, password, "none", token);
@@ -370,9 +374,9 @@ public class AuthConfigFactory {
     }
 
     private AuthConfig getAuthConfigFromSystemProperties(LookupMode lookupMode) throws MojoExecutionException {
-        Properties props = System.getProperties();
-        String userKey = lookupMode.asSysProperty(AUTH_USERNAME);
-        String passwordKey = lookupMode.asSysProperty(AUTH_PASSWORD);
+        final Properties props = System.getProperties();
+        final String userKey = lookupMode.asSysProperty(AUTH_USERNAME);
+        final String passwordKey = lookupMode.asSysProperty(AUTH_PASSWORD);
         if (props.containsKey(userKey)) {
             if (!props.containsKey(passwordKey)) {
                 throw new MojoExecutionException("No " + passwordKey + " provided for username " + props.getProperty(userKey));
@@ -387,7 +391,7 @@ public class AuthConfigFactory {
     }
 
     private AuthConfig getAuthConfigFromOpenShiftConfig(LookupMode lookupMode, Map authConfigMap) throws MojoExecutionException {
-        Properties props = System.getProperties();
+        final Properties props = System.getProperties();
         String useOpenAuthModeProp = lookupMode.asSysProperty(AUTH_USE_OPENSHIFT_AUTH);
         // Check for system property
         if (props.containsKey(useOpenAuthModeProp)) {
@@ -398,7 +402,6 @@ public class AuthConfigFactory {
                 return null;
             }
         }
-
         // Check plugin config
         Map mapToCheck = getAuthConfigMapToCheck(lookupMode,authConfigMap);
         if (mapToCheck != null && mapToCheck.containsKey(AUTH_USE_OPENSHIFT_AUTH) &&
@@ -408,22 +411,28 @@ public class AuthConfigFactory {
             return null;
         }
     }
-
+    
     private AuthConfig getAuthConfigFromPluginConfiguration(LookupMode lookupMode, Map authConfig) throws MojoExecutionException {
-        Map mapToCheck = getAuthConfigMapToCheck(lookupMode,authConfig);
-
+        AuthConfig ret = null;
+    	Map mapToCheck = getAuthConfigMapToCheck(lookupMode,authConfig);
         if (mapToCheck != null && mapToCheck.containsKey(AUTH_USERNAME)) {
             if (!mapToCheck.containsKey(AUTH_PASSWORD)) {
                 throw new MojoExecutionException("No 'password' given while using <authConfig> in configuration for mode " + lookupMode);
             }
             Map<String, String> cloneConfig = new HashMap<>(mapToCheck);
             cloneConfig.put(AUTH_PASSWORD, decrypt(cloneConfig.get(AUTH_PASSWORD)));
-            return new AuthConfig(cloneConfig);
-        } else {
-            return null;
-        }
+            ret = new AuthConfig(cloneConfig);
+        } return ret;
     }
-
+    
+    /**
+     * 
+     * @param settings settings the global Maven settings object
+     * @param user user to check for
+     * @param registry registry to use, might be null in which case a default registry is checked
+     * @return
+     * @throws MojoExecutionException
+     */
     private AuthConfig getAuthConfigFromSettings(Settings settings, String user, String registry) throws MojoExecutionException {
         Server defaultServer = null;
         Server found;
@@ -442,7 +451,13 @@ public class AuthConfigFactory {
         }
         return defaultServer != null ? createAuthConfigFromServer(defaultServer) : null;
     }
-
+    
+    /**
+     * 
+     * @param registry registry to use, might be null in which case a default registry is checked
+     * @return
+     * @throws MojoExecutionException
+     */
     private AuthConfig getAuthConfigFromDockerConfig(String registry) throws MojoExecutionException {
         JsonObject dockerConfig = DockerFileUtil.readDockerConfig();
         if (dockerConfig == null) {
@@ -474,15 +489,15 @@ public class AuthConfigFactory {
         if (credentials == null || !credentials.has("auth")) {
             return null;
         }
-        String auth = credentials.get("auth").getAsString();
-        String identityToken = credentials.has("identitytoken") ? credentials.get("identitytoken").getAsString() : null;
-        String email = credentials.has(AUTH_EMAIL) ? credentials.get(AUTH_EMAIL).getAsString() : null;
+        final String auth = credentials.get("auth").getAsString();
+        final String identityToken = credentials.has("identitytoken") ? credentials.get("identitytoken").getAsString() : null;
+        final String email = credentials.has(AUTH_EMAIL) ? credentials.get(AUTH_EMAIL).getAsString() : null;
         return new AuthConfig(auth, email, identityToken);
     }
 
     private AuthConfig extractAuthConfigFromCredentialsHelper(String registryToLookup, String credConfig) throws MojoExecutionException {
-        CredentialHelperClient credentialHelper = new CredentialHelperClient(log, credConfig);
-        String version = credentialHelper.getVersion();
+        final CredentialHelperClient credentialHelper = new CredentialHelperClient(log, credConfig);
+        final String version = credentialHelper.getVersion();
         log.debug("AuthConfig: credentials from credential helper/store %s%s",
                   credentialHelper.getName(),
                   version != null ? " version " + version : "");
@@ -503,7 +518,7 @@ public class AuthConfigFactory {
     // =======================================================================================================
 
     private Map getAuthConfigMapToCheck(LookupMode lookupMode, Map authConfigMap) {
-        String configMapKey = lookupMode.getConfigMapKey();
+        final String configMapKey = lookupMode.getConfigMapKey();
         if (configMapKey == null) {
             return authConfigMap;
         }
@@ -516,59 +531,51 @@ public class AuthConfigFactory {
     // Parse OpenShift config to get credentials, but return null if not found
     private AuthConfig parseOpenShiftConfig() {
         Map kubeConfig = DockerFileUtil.readKubeConfig();
-        if (kubeConfig == null) {
-            return null;
-        }
-
-        String currentContextName = (String) kubeConfig.get("current-context");
-        if (currentContextName == null) {
-            return null;
-        }
-
-        for (Map contextMap : (List<Map>) kubeConfig.get("contexts")) {
-            if (currentContextName.equals(contextMap.get("name"))) {
-                return parseContext(kubeConfig, (Map) contextMap.get("context"));
-            }
-        }
-
-        return null;
+        AuthConfig ret = null;
+        
+        if (kubeConfig != null) {
+        	String currentContextName = (String) kubeConfig.get("current-context");
+        	if (currentContextName != null) {
+        		for (Map contextMap : (List<Map>) kubeConfig.get("contexts")) {
+                    if (currentContextName.equals(contextMap.get("name"))) {
+                        ret = parseContext(kubeConfig, (Map) contextMap.get("context"));
+                    }
+                }
+        	}
+        } return ret;
     }
 
     private AuthConfig parseContext(Map kubeConfig, Map context) {
-        if (context == null) {
-            return null;
-        }
-        String userName = (String) context.get("user");
-        if (userName == null) {
-            return null;
-        }
-
-        List<Map> users = (List<Map>) kubeConfig.get("users");
-        if (users == null) {
-            return null;
-        }
-
-        for (Map userMap : users) {
-            if (userName.equals(userMap.get("name"))) {
-                return parseUser(userName, (Map) userMap.get("user"));
-            }
-        }
-        return null;
-    }
+    	AuthConfig ret = null;
+    	
+    	if (context != null) {
+    		String userName = (String) context.get("user");
+    		 if (userName != null) {
+    			 
+    			 List<Map> users = (List<Map>) kubeConfig.get("users");
+    			 if (users != null) {
+    				 
+    				 for (Map userMap : users) {
+    			            if (userName.equals(userMap.get("name"))) {
+    			                ret = parseUser(userName, (Map) userMap.get("user"));
+    			            }
+    			        }
+    			 	}
+    			 }
+    		 } return ret;
+    	}
 
     private AuthConfig parseUser(String userName, Map user) {
-        if (user == null) {
-            return null;
-        }
-        String token = (String) user.get("token");
-        if (token == null) {
-            return null;
-        }
-
-        // Strip off stuff after username
-        Matcher matcher = Pattern.compile("^([^/]+).*$").matcher(userName);
-        return new AuthConfig(matcher.matches() ? matcher.group(1) : userName,
-                              token, null, null);
+    	AuthConfig ret = null;
+    	if (user != null) {	
+    		String token = (String) user.get("token");
+    		if (token != null) {
+    			// Strip off stuff after username
+    	        Matcher matcher = Pattern.compile("^([^/]+).*$").matcher(userName);
+    	        ret = new AuthConfig(matcher.matches() ? matcher.group(1) : userName,
+    	                              token, null, null);
+    		}
+    	} return ret;
     }
 
     private AuthConfig validateMandatoryOpenShiftLogin(AuthConfig openShiftAuthConfig, String useOpenAuthModeProp) throws MojoExecutionException {
@@ -576,7 +583,7 @@ public class AuthConfigFactory {
             return openShiftAuthConfig;
         }
         // No login found
-        String kubeConfigEnv = System.getenv("KUBECONFIG");
+        final String kubeConfigEnv = System.getenv("KUBECONFIG");
         throw new MojoExecutionException(
             String.format("System property %s set, but not active user and/or token found in %s. " +
                           "Please use 'oc login' for connecting to OpenShift.",
@@ -584,23 +591,23 @@ public class AuthConfigFactory {
 
     }
 
-
     private Server checkForServer(Server server, String id, String registry, String user) {
+    	Server ret = null;
 
         String[] registries = registry != null ? new String[] { registry } : DEFAULT_REGISTRIES;
         for (String reg : registries) {
             if (id.equals(user == null ? reg : reg + "/" + user)) {
-                return server;
+                ret = server;
             }
         }
-        return null;
+        return ret;
     }
 
     private String decrypt(String password) throws MojoExecutionException {
         try {
             // Done by reflection since I have classloader issues otherwise
-            Object secDispatcher = container.lookup(SecDispatcher.ROLE, "maven");
-            Method method = secDispatcher.getClass().getMethod("decrypt",String.class);
+            final Object secDispatcher = container.lookup(SecDispatcher.ROLE, "maven");
+            final Method method = secDispatcher.getClass().getMethod("decrypt",String.class);
             return (String) method.invoke(secDispatcher,password);
         } catch (ComponentLookupException e) {
             throw new MojoExecutionException("Error looking security dispatcher",e);
@@ -619,14 +626,15 @@ public class AuthConfigFactory {
     }
 
     private String extractFromServerConfiguration(Object configuration, String prop) {
+    	String ret = null;
         if (configuration != null) {
-            Xpp3Dom dom = (Xpp3Dom) configuration;
-            Xpp3Dom element = dom.getChild(prop);
+            final Xpp3Dom dom = (Xpp3Dom) configuration;
+            final Xpp3Dom element = dom.getChild(prop);
             if (element != null) {
-                return element.getValue();
+                ret = element.getValue();
             }
         }
-        return null;
+        return ret;
     }
 
     // ========================================================================================
@@ -649,14 +657,17 @@ public class AuthConfigFactory {
             this.sysPropPrefix = sysPropPrefix;
             this.configMapKey = configMapKey;
         }
-
+        
         public String asSysProperty(String prop) {
             return sysPropPrefix + prop;
         }
-
+        
+        /**
+         * getter for ConfigMapKey
+         * @return
+         */
         public String getConfigMapKey() {
             return configMapKey;
         }
     }
-
 }

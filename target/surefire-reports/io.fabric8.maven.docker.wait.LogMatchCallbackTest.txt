@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: io.fabric8.maven.docker.wait.LogMatchCallbackTest
 -------------------------------------------------------------------------------
-Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.071 s - in io.fabric8.maven.docker.wait.LogMatchCallbackTest
+Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.072 s - in io.fabric8.maven.docker.wait.LogMatchCallbackTest

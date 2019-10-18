@@ -1,37 +1,125 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <component-set>
   <components>
-    
+    <component>
+      <role>io.fabric8.maven.docker.service.DockerAccessFactory</role>
+      <role-hint>default</role-hint>
+      <implementation>io.fabric8.maven.docker.service.DockerAccessFactory</implementation>
+      <instantiation-strategy>singleton</instantiation-strategy>
+      <description></description>
+      <isolated-realm>false</isolated-realm>
+    </component>
+    <component>
+      <role>org.codehaus.plexus.archiver.Archiver</role>
+      <role-hint>track</role-hint>
+      <implementation>io.fabric8.maven.docker.assembly.MappingTrackArchiver</implementation>
+      <instantiation-strategy>singleton</instantiation-strategy>
+      <description></description>
+      <isolated-realm>false</isolated-realm>
+    </component>
+    <component>
+      <role>io.fabric8.maven.docker.config.handler.ImageConfigResolver</role>
+      <role-hint>default</role-hint>
+      <implementation>io.fabric8.maven.docker.config.handler.ImageConfigResolver</implementation>
+      <instantiation-strategy>singleton</instantiation-strategy>
+      <description></description>
+      <isolated-realm>false</isolated-realm>
+      <requirements>
+        <requirement>
+          <role>io.fabric8.maven.docker.config.handler.property.PropertyConfigHandler</role>
+          <role-hint></role-hint>
+          <field-name>propertyConfigHandler</field-name>
+        </requirement>
+        <requirement>
+          <role>io.fabric8.maven.docker.config.handler.compose.DockerComposeConfigHandler</role>
+          <role-hint></role-hint>
+          <field-name>dockerComposeConfigHandler</field-name>
+        </requirement>
+      </requirements>
+    </component>
+    <component>
+      <role>io.fabric8.maven.docker.assembly.DockerAssemblyManager</role>
+      <role-hint>default</role-hint>
+      <implementation>io.fabric8.maven.docker.assembly.DockerAssemblyManager</implementation>
+      <instantiation-strategy>per-lookup</instantiation-strategy>
+      <description></description>
+      <isolated-realm>false</isolated-realm>
+      <requirements>
+        <requirement>
+          <role>org.apache.maven.plugins.assembly.archive.AssemblyArchiver</role>
+          <role-hint></role-hint>
+          <field-name>assemblyArchiver</field-name>
+        </requirement>
+        <requirement>
+          <role>org.apache.maven.plugins.assembly.io.AssemblyReader</role>
+          <role-hint></role-hint>
+          <field-name>assemblyReader</field-name>
+        </requirement>
+        <requirement>
+          <role>org.codehaus.plexus.archiver.manager.ArchiverManager</role>
+          <role-hint></role-hint>
+          <field-name>archiverManager</field-name>
+        </requirement>
+        <requirement>
+          <role>org.codehaus.plexus.archiver.Archiver</role>
+          <role-hint>track</role-hint>
+          <field-name>trackArchiver</field-name>
+        </requirement>
+      </requirements>
+    </component>
+    <component>
+      <role>io.fabric8.maven.docker.service.ServiceHubFactory</role>
+      <role-hint>default</role-hint>
+      <implementation>io.fabric8.maven.docker.service.ServiceHubFactory</implementation>
+      <instantiation-strategy>singleton</instantiation-strategy>
+      <description></description>
+      <isolated-realm>false</isolated-realm>
+      <requirements>
+        <requirement>
+          <role>org.apache.maven.plugin.BuildPluginManager</role>
+          <role-hint></role-hint>
+          <field-name>pluginManager</field-name>
+        </requirement>
+        <requirement>
+          <role>io.fabric8.maven.docker.assembly.DockerAssemblyManager</role>
+          <role-hint></role-hint>
+          <field-name>dockerAssemblyManager</field-name>
+        </requirement>
+      </requirements>
+    </component>
     <component>
       <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
       <role-hint>docker</role-hint>
       <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
+      <component-type>plexus</component-type>
+      <description></description>
+      <isolated-realm>false</isolated-realm>
       <configuration>
         <lifecycles>
           <lifecycle>
             <id>default</id>
-            
             <phases>
               <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
               <compile>org.apache.maven.plugins:maven-compiler-plugin:compile</compile>
               <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources</process-test-resources>
               <test-compile>org.apache.maven.plugins:maven-compiler-plugin:testCompile</test-compile>
               <test>org.apache.maven.plugins:maven-surefire-plugin:test</test>
-              <package>org.apache.maven.plugins:maven-jar-plugin:jar,io.fabric8:docker-maven-plugin:build</package>
-              <pre-integration-test>io.fabric8:docker-maven-plugin:start</pre-integration-test>
+              <package>org.apache.maven.plugins:maven-jar-plugin:jar,${project.groupId}:${project.artifactId}:build</package>
+              <pre-integration-test>${project.groupId}:${project.artifactId}:start</pre-integration-test>
               <integration-test>org.apache.maven.plugins:maven-failsafe-plugin:integration-test</integration-test>
-              <verify>io.fabric8:docker-maven-plugin:stop,org.apache.maven.plugins:maven-failsafe-plugin:verify</verify>
-              <deploy>io.fabric8:docker-maven-plugin:push</deploy>
+              <verify>${project.groupId}:${project.artifactId}:stop,org.apache.maven.plugins:maven-failsafe-plugin:verify</verify>
+              <deploy>${project.groupId}:${project.artifactId}:push</deploy>
             </phases>
           </lifecycle>
         </lifecycles>
       </configuration>
     </component>
-    
     <component>
       <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
       <role-hint>docker-build</role-hint>
       <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
+      <component-type>plexus</component-type>
+      <description></description>
+      <isolated-realm>false</isolated-realm>
       <configuration>
         <lifecycles>
           <lifecycle>
@@ -42,8 +130,8 @@
               <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources</process-test-resources>
               <test-compile>org.apache.maven.plugins:maven-compiler-plugin:testCompile</test-compile>
               <test>org.apache.maven.plugins:maven-surefire-plugin:test</test>
-              <package>org.apache.maven.plugins:maven-jar-plugin:jar,io.fabric8:docker-maven-plugin:build</package>
-              <deploy>io.fabric8:docker-maven-plugin:push</deploy>
+              <package>org.apache.maven.plugins:maven-jar-plugin:jar,${project.groupId}:${project.artifactId}:build</package>
+              <deploy>${project.groupId}:${project.artifactId}:push</deploy>
             </phases>
           </lifecycle>
         </lifecycles>
@@ -53,6 +141,9 @@
       <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
       <role-hint>docker-tar</role-hint>
       <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
+      <component-type>plexus</component-type>
+      <description></description>
+      <isolated-realm>false</isolated-realm>
       <configuration>
         <lifecycles>
           <lifecycle>
@@ -63,104 +154,35 @@
               <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources</process-test-resources>
               <test-compile>org.apache.maven.plugins:maven-compiler-plugin:testCompile</test-compile>
               <test>org.apache.maven.plugins:maven-surefire-plugin:test</test>
-              <package>org.apache.maven.plugins:maven-jar-plugin:jar,io.fabric8:docker-maven-plugin:source</package>
+              <package>org.apache.maven.plugins:maven-jar-plugin:jar,${project.groupId}:${project.artifactId}:source</package>
               <install>org.apache.maven.plugins:maven-install-plugin:install</install>
             </phases>
           </lifecycle>
         </lifecycles>
       </configuration>
     </component>
-
-    
     <component>
       <role>io.fabric8.maven.docker.config.handler.compose.DockerComposeConfigHandler</role>
+      <role-hint>default</role-hint>
       <implementation>io.fabric8.maven.docker.config.handler.compose.DockerComposeConfigHandler</implementation>
+      <component-type>plexus</component-type>
+      <description></description>
+      <isolated-realm>false</isolated-realm>
       <requirements>
         <requirement>
           <role>org.apache.maven.shared.filtering.MavenReaderFilter</role>
+          <role-hint></role-hint>
           <field-name>readerFilter</field-name>
         </requirement>
       </requirements>
-      <isolated-realm>false</isolated-realm>
     </component>
     <component>
       <role>io.fabric8.maven.docker.config.handler.property.PropertyConfigHandler</role>
+      <role-hint>default</role-hint>
       <implementation>io.fabric8.maven.docker.config.handler.property.PropertyConfigHandler</implementation>
+      <component-type>plexus</component-type>
+      <description></description>
       <isolated-realm>false</isolated-realm>
     </component>
-  <component>
-      <role>io.fabric8.maven.docker.service.ServiceHubFactory</role>
-      <role-hint>default</role-hint>
-      <implementation>io.fabric8.maven.docker.service.ServiceHubFactory</implementation>
-      <instantiation-strategy>singleton</instantiation-strategy>
-      <description />
-      <isolated-realm>false</isolated-realm>
-      <requirements>
-        <requirement>
-          <role>org.apache.maven.plugin.BuildPluginManager</role>
-          <field-name>pluginManager</field-name>
-        </requirement>
-        <requirement>
-          <role>io.fabric8.maven.docker.assembly.DockerAssemblyManager</role>
-          <field-name>dockerAssemblyManager</field-name>
-        </requirement>
-      </requirements>
-    </component><component>
-      <role>io.fabric8.maven.docker.service.DockerAccessFactory</role>
-      <role-hint>default</role-hint>
-      <implementation>io.fabric8.maven.docker.service.DockerAccessFactory</implementation>
-      <instantiation-strategy>singleton</instantiation-strategy>
-      <description />
-      <isolated-realm>false</isolated-realm>
-    </component><component>
-      <role>io.fabric8.maven.docker.config.handler.ImageConfigResolver</role>
-      <role-hint>default</role-hint>
-      <implementation>io.fabric8.maven.docker.config.handler.ImageConfigResolver</implementation>
-      <instantiation-strategy>singleton</instantiation-strategy>
-      <description />
-      <isolated-realm>false</isolated-realm>
-      <requirements>
-        <requirement>
-          <role>io.fabric8.maven.docker.config.handler.property.PropertyConfigHandler</role>
-          <field-name>propertyConfigHandler</field-name>
-        </requirement>
-        <requirement>
-          <role>io.fabric8.maven.docker.config.handler.compose.DockerComposeConfigHandler</role>
-          <field-name>dockerComposeConfigHandler</field-name>
-        </requirement>
-      </requirements>
-    </component><component>
-      <role>org.codehaus.plexus.archiver.Archiver</role>
-      <role-hint>track</role-hint>
-      <implementation>io.fabric8.maven.docker.assembly.MappingTrackArchiver</implementation>
-      <instantiation-strategy>singleton</instantiation-strategy>
-      <description />
-      <isolated-realm>false</isolated-realm>
-    </component><component>
-      <role>io.fabric8.maven.docker.assembly.DockerAssemblyManager</role>
-      <role-hint>default</role-hint>
-      <implementation>io.fabric8.maven.docker.assembly.DockerAssemblyManager</implementation>
-      <instantiation-strategy>per-lookup</instantiation-strategy>
-      <description />
-      <isolated-realm>false</isolated-realm>
-      <requirements>
-        <requirement>
-          <role>org.apache.maven.plugins.assembly.archive.AssemblyArchiver</role>
-          <field-name>assemblyArchiver</field-name>
-        </requirement>
-        <requirement>
-          <role>org.apache.maven.plugins.assembly.io.AssemblyReader</role>
-          <field-name>assemblyReader</field-name>
-        </requirement>
-        <requirement>
-          <role>org.codehaus.plexus.archiver.manager.ArchiverManager</role>
-          <field-name>archiverManager</field-name>
-        </requirement>
-        <requirement>
-          <role>org.codehaus.plexus.archiver.Archiver</role>
-          <role-hint>track</role-hint>
-          <field-name>trackArchiver</field-name>
-        </requirement>
-      </requirements>
-    </component></components>
+  </components>
 </component-set>
